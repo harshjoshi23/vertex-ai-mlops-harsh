@@ -24,14 +24,24 @@ regression suite with `python3 -m unittest discover -v`.
 
 ## Vertex AI evaluation inputs
 
-A [Vertex AI classification evaluation](https://docs.cloud.google.com/gemini-enterprise-agent-platform/reference/rest/Shared.Types/ClassificationEvaluationMetrics)
-publishes `auPrc` and `auRoc`. The pipeline should select one evaluation per
-model, verify both used the same holdout and scoring protocol, and map
-`metrics.auPrc` to `metrics.au_prc` in the gate report. Use the immutable
-evaluation dataset and protocol identifier from the pipeline manifest for
-`dataset_id`. The gate compares these identifiers, so the pipeline is
-responsible for attaching them correctly. Keep the original evaluation resource
-names alongside the reports for audit.
+Wrap each saved [Vertex AI classification evaluation](https://docs.cloud.google.com/gemini-enterprise-agent-platform/reference/rest/Shared.Types/ClassificationEvaluationMetrics)
+with the immutable dataset and protocol identifier from its pipeline manifest.
+For example, a synthetic candidate report looks like this.
 
-The demo uses local reports. Automated export from Vertex AI and cloud
-validation are follow-up work.
+```json
+{
+  "dataset_id": "holdout-v2",
+  "vertex_evaluation": {
+    "metricsSchemaUri": "gs://google-cloud-aiplatform/schema/modelevaluation/classification_metrics_1.0.0.yaml",
+    "metrics": {"auPrc": 0.82, "auRoc": 0.91}
+  }
+}
+```
+
+Create the baseline in the same format and run the demo command with the two
+wrapped files. Use `--metric au_prc` or `--metric au_roc`. The gate checks the
+schema and compares the dataset identifiers. The pipeline is responsible for
+ensuring those identifiers describe the actual holdout and scoring protocol.
+Keep the original evaluation resource names in the saved evaluations for audit.
+The gate runs locally against saved files. Exporting the evaluations and
+validating against a live Google Cloud project are follow-up work.
