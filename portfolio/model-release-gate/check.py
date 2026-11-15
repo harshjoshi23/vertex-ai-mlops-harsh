@@ -5,6 +5,10 @@ Run: python check.py baseline.json candidate.json --metric au_prc \
 
 Each report is an object such as
 {"dataset_id": "holdout-v2", "metrics": {"au_prc": 0.84}}.
+For saved Vertex AI classification evaluations, wrap each evaluation resource as
+{"dataset_id": "holdout-v2", "vertex_evaluation": {"metricsSchemaUri":
+ "gs://google-cloud-aiplatform/schema/modelevaluation/classification_metrics_1.0.0.yaml",
+ "metrics": {"auPrc": 0.84}}}. Use au_prc or au_roc as the metric.
 Use an immutable dataset ID that includes the evaluation split and protocol.
 The selected metric must be a score in [0, 1] where higher is better.
 Exit status: 0 passes, 1 blocks promotion, 2 indicates invalid inputs.
@@ -29,6 +33,22 @@ def read_report(path, metric):
     dataset_id = report.get("dataset_id")
     if not isinstance(dataset_id, str) or not dataset_id.strip():
         raise ValueError(f"{path}: dataset_id must be a non-empty string")
+    if "vertex_evaluation" in report:
+        if "metrics" in report:
+            raise ValueError(f"{path}: choose one evaluation report format")
+        evaluation = report["vertex_evaluation"]
+        schema = (
+            "gs://google-cloud-aiplatform/schema/modelevaluation/"
+            "classification_metrics_1.0.0.yaml"
+        )
+        if not isinstance(evaluation, dict) or evaluation.get("metricsSchemaUri") != schema:
+            raise ValueError(f"{path}: expected a Vertex AI classification evaluation")
+        vertex_metric = {"au_prc": "auPrc", "au_roc": "auRoc"}.get(metric)
+        metrics = evaluation.get("metrics")
+        if not isinstance(metrics, dict) or vertex_metric not in metrics:
+            raise ValueError(f"{path}: missing Vertex AI metric {metric!r}")
+        return dataset_id, score(metrics[vertex_metric], f"{path}: {metric}")
+
     metrics = report.get("metrics")
     if not isinstance(metrics, dict) or metric not in metrics:
         raise ValueError(f"{path}: missing metric {metric!r}")
