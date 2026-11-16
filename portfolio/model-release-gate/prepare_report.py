@@ -8,7 +8,7 @@ import argparse
 import json
 from pathlib import Path
 
-
+from check import unique_json_object
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -18,7 +18,10 @@ def main():
     args = parser.parse_args()
 
     try:
-        response = json.loads(args.response.read_text(encoding="utf-8"))
+        response = json.loads(
+            args.response.read_text(encoding="utf-8"),
+            object_pairs_hook=unique_json_object,
+        )
         if not isinstance(response, dict) or not isinstance(response.get("modelEvaluations"), list):
             raise ValueError("expected a modelEvaluations array")
         if not args.dataset_id.strip() or not args.evaluation.strip():
