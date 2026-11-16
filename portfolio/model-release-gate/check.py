@@ -26,8 +26,22 @@ def score(value, label):
     return value
 
 
+def unique_json_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key {key!r}")
+        result[key] = value
+    return result
+
+
 def read_report(path, metric):
-    report = json.loads(path.read_text(encoding="utf-8"), parse_int=Decimal, parse_float=Decimal)
+    report = json.loads(
+        path.read_text(encoding="utf-8"),
+        parse_int=Decimal,
+        parse_float=Decimal,
+        object_pairs_hook=unique_json_object,
+    )
     if not isinstance(report, dict):
         raise ValueError(f"{path}: expected a JSON object")
     dataset_id = report.get("dataset_id")
