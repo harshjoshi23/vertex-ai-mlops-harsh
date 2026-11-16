@@ -43,5 +43,16 @@ wrapped files. Use `--metric au_prc` or `--metric au_roc`. The gate checks the
 schema and compares the dataset identifiers. The pipeline is responsible for
 ensuring those identifiers describe the actual holdout and scoring protocol.
 Keep the original evaluation resource names in the saved evaluations for audit.
-The gate runs locally against saved files. Exporting the evaluations and
-validating against a live Google Cloud project are follow-up work.
+For a saved Vertex AI list response, prepare a report directly. Set
+`evaluation_name` to the full resource name and `dataset_id` to the immutable
+identifier from that evaluation's pipeline manifest.
+
+```sh
+python3 prepare_report.py evaluations.json \
+  --evaluation "$evaluation_name" --dataset-id "$dataset_id" > candidate.json
+```
+
+The response must contain exactly one matching evaluation in its
+`modelEvaluations` array. Repeat for the baseline with its own manifest values.
+Pass the resulting files to `check.py`. The workflow runs offline against saved
+responses. Live export and deployment validation are follow-up work.
