@@ -81,3 +81,34 @@ class PrepareReportTest(unittest.TestCase):
                     self.assertEqual(result.returncode, 2, result.stderr)
                     self.assertIn(f"duplicate JSON key {key!r}", result.stderr)
                     self.assertEqual(result.stdout, "")
+
+    def test_preparation_preserves_score_at_release_boundary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            response = root / "response.json"
+            baseline = root / "baseline.json"
+            candidate = root / "candidate.json"
+            baseline.write_text('{"dataset_id":"v2","metrics":{"au_prc":0.84}}')
+            for score, status in [("0.82", 0), ("0.81999999999999999", 1)]:
+                with self.subTest(score=score):
+                    response.write_text(
+                        '{"modelEvaluations":[{"name":"' + EVALUATION
+                        + '","metricsSchemaUri":"gs://google-cloud-aiplatform/schema/'
+                        + 'modelevaluation/classification_metrics_1.0.0.yaml",'
+                        + '"metrics":{"auPrc":' + score + '}}]}'
+                    )
+                    prepared = subprocess.run(
+                        [sys.executable, str(HERE / "prepare_report.py"), str(response),
+                         "--evaluation", EVALUATION, "--dataset-id", "v2"],
+                        capture_output=True, text=True, timeout=10,
+                    )
+                    self.assertEqual(prepared.returncode, 0, prepared.stderr)
+                    self.assertIn(score, prepared.stdout)
+                    candidate.write_text(prepared.stdout)
+                    gate = subprocess.run(
+                        [sys.executable, str(HERE / "check.py"), str(baseline), str(candidate),
+                         "--metric", "au_prc", "--minimum", "0.80", "--max-regression", "0.02"],
+                        capture_output=True, text=True, timeout=10,
+                    )
+                    self.assertEqual(gate.returncode, status, gate.stderr)
+                    self.assertIs(json.loads(gate.stdout)["passed"], status == 0)
