@@ -52,3 +52,32 @@ class PrepareReportTest(unittest.TestCase):
                     )
                     self.assertEqual(gate.returncode, 0, gate.stderr)
                     self.assertIs(json.loads(gate.stdout)["passed"], True)
+
+    def test_duplicate_fields_rejected_by_both_commands(self):
+        with tempfile.TemporaryDirectory() as directory:
+            report = Path(directory) / "report.json"
+            cases = [
+                (
+                    "check.py",
+                    '{"dataset_id":"v2","metrics":{"au_prc":0.40,"au_prc":0.95}}',
+                    [str(report), "--metric", "au_prc", "--minimum", "0.80",
+                     "--max-regression", "0.02"],
+                    "au_prc",
+                ),
+                (
+                    "prepare_report.py",
+                    '{"modelEvaluations":[{"name":"other","name":"' + EVALUATION + '"}]}',
+                    ["--evaluation", EVALUATION, "--dataset-id", "v2"],
+                    "name",
+                ),
+            ]
+            for script, payload, arguments, key in cases:
+                with self.subTest(script=script):
+                    report.write_text(payload, encoding="utf-8")
+                    result = subprocess.run(
+                        [sys.executable, str(HERE / script), str(report), *arguments],
+                        capture_output=True, text=True, timeout=10,
+                    )
+                    self.assertEqual(result.returncode, 2, result.stderr)
+                    self.assertIn(f"duplicate JSON key {key!r}", result.stderr)
+                    self.assertEqual(result.stdout, "")
