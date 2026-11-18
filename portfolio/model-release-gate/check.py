@@ -74,13 +74,13 @@ def main():
     parser.add_argument("baseline", type=Path)
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--metric", required=True)
-    parser.add_argument("--minimum", required=True, type=Decimal)
-    parser.add_argument("--max-regression", required=True, type=Decimal)
+    parser.add_argument("--minimum", required=True)
+    parser.add_argument("--max-regression", required=True)
     args = parser.parse_args()
 
     try:
-        minimum = score(args.minimum, "minimum")
-        allowed = score(args.max_regression, "max-regression")
+        minimum = score(Decimal(args.minimum), "minimum")
+        allowed = score(Decimal(args.max_regression), "max-regression")
         baseline_dataset, baseline = read_report(args.baseline, args.metric)
         candidate_dataset, candidate = read_report(args.candidate, args.metric)
         if baseline_dataset != candidate_dataset:
