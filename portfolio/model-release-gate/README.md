@@ -7,7 +7,13 @@ evaluation dataset and protocol.
 
 ## Run the demo
 
-From this directory, create two synthetic reports in a temporary directory.
+From this directory, run `python3 demo.py` to generate synthetic Vertex AI
+evaluation responses and verify a passing candidate and a blocked candidate.
+The demo prepares each report, runs the gate, checks the decisions and removes
+its temporary files. CI runs this command alongside the regression suite.
+
+To inspect a simple report comparison manually, create two synthetic reports
+in a temporary directory.
 
 ```sh
 reports=$(mktemp -d)
