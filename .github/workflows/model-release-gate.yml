@@ -20,3 +20,5 @@ jobs:
           sparse-checkout: portfolio/model-release-gate
       - name: Run release-gate tests
         run: python3 -m unittest discover -s portfolio/model-release-gate -v
+      - name: Verify offline promotion demo
+        run: python3 portfolio/model-release-gate/demo.py
