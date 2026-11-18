@@ -88,6 +88,14 @@ class ReleaseGateTest(unittest.TestCase):
                 else:
                     self.assertIs(json.loads(result.stdout)["passed"], status == 0)
 
+    def test_invalid_threshold_is_an_input_error(self):
+        result = self.run_gate(
+            '{"dataset_id":"v2","metrics":{"au_prc":0.9}}', minimum="invalid"
+        )
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertEqual(result.stdout, "")
+
 
 if __name__ == "__main__":
     unittest.main()
