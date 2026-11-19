@@ -1,4 +1,3 @@
-![tracker](https://us-central1-vertex-ai-mlops-369716.cloudfunctions.net/pixel-tracking?path=statmike%2Fvertex-ai-mlops&file=readme.md)
 <!--- header table --->
 <table>
 <tr>     
@@ -37,6 +36,8 @@
 
 ---
 # MLOps on GCP
+
+This repository contains examples from [StatMike’s Vertex AI MLOps repository](https://github.com/statmike/vertex-ai-mlops). The upstream project is the source for the notebook collection and original documentation. See the [Apache 2.0 license](./LICENSE) for redistribution terms.
 
 Google Cloud's AI platform has evolved through several names — **Cloud ML Engine**, then **AI Platform**, then **Vertex AI**, and as of April 2026, **[Gemini Enterprise Agent Platform](https://cloud.google.com/blog/products/ai-machine-learning/introducing-gemini-enterprise-agent-platform)**. Each renaming reflects an expansion in scope: from custom model training, to a unified ML platform with AutoML and managed notebooks, to the current vision that brings together model building, agent development, orchestration, and governance in a single platform. This repository has tracked that evolution, and its recent content — AI agents with ADK, agent deployment on Agent Engine (formerly Vertex AI Agent Builder), and agentic workflows — reflects exactly where the platform is heading.
 
